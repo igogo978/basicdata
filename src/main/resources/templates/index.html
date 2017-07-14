@@ -1,0 +1,397 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <style type="text/css">
+        .modal-mask {
+            position: fixed;
+            z-index: 9998;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, .5);
+            display: table;
+            transition: opacity .3s ease;
+        }
+        
+        .modal-wrapper {
+            display: table-cell;
+            vertical-align: middle;
+        }
+        
+        .modal-container {
+            width: 300px;
+            margin: 0px auto;
+            padding: 20px 30px;
+            background-color: #fff;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+            transition: all .3s ease;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+        
+        .modal-header h3 {
+            margin-top: 0;
+            color: #42b983;
+        }
+        
+        .modal-body {
+            margin: 20px 0;
+        }
+        
+        .modal-default-button {
+            float: right;
+            border: 4px solid #26759E;
+            -webkit-box-shadow: #878787 0px 2px 2px;
+            -moz-box-shadow: #878787 0px 2px 2px;
+            box-shadow: #878787 0px 2px 2px;
+            -webkit-border-radius: 23px;
+            -moz-border-radius: 23px;
+            border-radius: 23px;
+            font-size: 13px;
+            font-family: arial, helvetica, sans-serif;
+            padding: 10px 20px 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+            color: #FFFFFF;
+            background-color: #3093C7;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#3093C7), to(#1C5A85));
+            background-image: -webkit-linear-gradient(top, #3093C7, #1C5A85);
+            background-image: -moz-linear-gradient(top, #3093C7, #1C5A85);
+            background-image: -ms-linear-gradient(top, #3093C7, #1C5A85);
+            background-image: -o-linear-gradient(top, #3093C7, #1C5A85);
+            background-image: linear-gradient(to bottom, #3093C7, #1C5A85);
+            filter: progid: DXImageTransform.Microsoft.gradient(GradientType=0, startColorstr=#3093C7, endColorstr=#1C5A85);
+        }
+        /*
+                 * The following styles are auto-applied to elements with
+                 * transition="modal" when their visibility is toggled
+                 * by Vue.js.
+                 *
+                 * You can easily play with the modal transition by editing
+                 * these styles.
+                 */
+        
+        .modal-enter {
+            opacity: 0;
+        }
+        
+        .modal-leave-active {
+            opacity: 0;
+        }
+        
+        .modal-enter .modal-container,
+        .modal-leave-active .modal-container {
+            -webkit-transform: scale(1.1);
+            transform: scale(1.1);
+        }
+        </style>
+    </header>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">教育部SSO-個人申請</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <!--    <form class="navbar-form navbar-right">
+                    <div class="form-group">
+                        <input type="text" placeholder="Email" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-success">Sign in</button>
+                </form> -->
+            </div>
+            <!--/.navbar-collapse -->
+        </div>
+    </nav>
+    <div style="background:transparent !important" class="jumbotron">
+        <div class="container" id="app">
+            <component :is="currentView" :item="item" v-on:get-data="updateItem">
+            </component>
+            <modal v-if="showModal" @close="showModal = false">
+                <!--
+      you can use custom content here to overwrite
+      default content
+    -->
+                <h3 slot="header"> </h3>
+                <p slot="body">{{item.err}} </p>
+            </modal>
+        </div>
+    </div>
+    <template id="initView">
+        <div>
+            <p></p>
+            <p></p>
+            <p></p>
+            教學說明
+            <!-- <div class="btn-group"> -->
+            <button type="button" class="btn btn-default">下載微型伺服器</button>
+            <button type="button" class="btn btn-success" @click="getData">讀取健保卡</button>
+            <!-- </div> -->
+        </div>
+    </template>
+    <template id="formInput">
+        <div>
+            <p>填寫相關資料</p>
+            <p>{{item}}</p>
+            <div class="col-md-8">
+                <div class="form-group">
+                    <div class="form-group row">
+                        <div class="col-xs-10">
+                            中文姓名：
+                            <input v-model="item.pname" class="form-control input-sg" type="text" size="20" disabled="disabled" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-group row">
+                        <div class="col-xs-10">
+                            身份證字號:
+                            <input v-model="item.pid" class="form-control input-sg" type="text" size="20" disabled="disabled" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-group row">
+                        <div class="col-xs-10">
+                            出生年月日:
+                            <input v-model="item.dob" class="form-control input-sg" type="text" size="20" disabled="disabled" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-group row">
+                        <div class="col-xs-10">
+                            性別:
+                            <input v-model="item.sex" class="form-control input-sg" type="text" size="20" disabled="disabled" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-group row">
+                        <div class="col-xs-10">
+                            發卡日期:
+                            <input v-model="item.issue" class="form-control input-sg" type="text" size="20" disabled="disabled" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-group row">
+                        <div class="col-xs-10">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <td>服務單位代碼</td>
+                                        <td>職稱</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(row,index) in rows">
+                                        <td>
+                                            <input type="text" v-model="row.schoolid">
+                                        </td>
+                                        <td>
+                                            <input type="text" v-model="row.title">
+                                        </td>
+                                        <td v-if="index!=0"><a @click="removeRow(row)">Remove</a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button class="button btn-primary" @click="addRow">Add row</button>
+                            <!--  <input v-model="item.schoolid" class="form-control input-sg" type="text" size="20" placeholder="教育部統計處訂定各級單位代碼" /> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-10">
+                        <button @click="requestUpdate" class="btn btn-primary pull-right">確定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <!-- template for the modal component -->
+    <script type="text/x-template" id="modal-template">
+        <transition name="modal">
+            <div class="modal-mask">
+                <div class="modal-wrapper">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <slot name="header">
+                                default header
+                            </slot>
+                        </div>
+                        <div class="modal-body">
+                            <slot name="body">
+                                default body
+                            </slot>
+                        </div>
+                        <div class="modal-footer">
+                            <slot name="footer">
+                                <button class="modal-default-button" @click="$emit('close')">
+                                    OK
+                                </button>
+                            </slot>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </script>
+    <script th:inline="javascript">
+    Vue.prototype.$http = axios;
+
+    Vue.component('initView', {
+        props: ['item'],
+        template: '#initView',
+        data: function() {
+            return {
+                url: /*[[${url}]]*/
+            }
+        },
+        methods: {
+            getData: function() {
+                console.log(this.url);
+                let vm = this;
+                let obj = {};
+                this.$http.get(this.url).then((response) => {
+                    // success callback
+                    console.log(response.data.obj);
+                    if (response.data.obj === null) {
+                        obj.err = "請確定健保卡是否正確插入";
+                    } else {
+                        //成功取得健保卡資料,currentView 改成formInput
+                        obj = response.data.obj;
+
+                    }
+
+                    vm.$emit('get-data', obj);
+
+                    // this.showModal = true;
+                }, (response) => {
+                    // error callback
+                    obj.err = "請確定微型伺服器已啟動";
+                    vm.$emit('get-data', obj);
+                });
+
+            }
+
+        }
+    });
+
+    // register modal component
+    Vue.component('modal', {
+        props: ['item'],
+        template: '#modal-template'
+    })
+
+    // register modal component
+    Vue.component('formInput', {
+        props: ['item'],
+        template: '#formInput',
+
+        data: function() {
+            return {
+                rows: [{
+                    schoolid: "",
+                    title: ""
+                }]
+            }
+        },
+        methods: {
+            addRow: function() {
+                this.rows.push({
+                    schoolid: "",
+                    title: ""
+                });
+            },
+            removeRow: function(row) {
+                console.log(row);
+                this.rows.$remove(row);
+            },
+            requestUpdate: function() {
+                // console.log(this.rows[0].schoolid);
+                this.item.schoolids = [];
+                this.item.schoolids = this.rows; 
+                var config = {
+                    headers: {
+                        'content-type': 'application/json;CHARSET=UTF-8'
+                    }
+                };
+                console.log('request update item');
+                let vm = this;
+                let isAllValid = true;
+
+                // this.item.schoolid.length === 6 ? true : isAllValid = false;
+                // console.log("schoolid length:" + this.item.schoolid.length);
+
+                if (isAllValid) {
+                    url = this.item.cardid + '/userinfo';
+                    // console.log('request url:' + url);
+                    // console.log(JSON.stringify(this.item));
+                    this.$http.post(url,
+                        JSON.stringify(this.item), config
+                    ).then((response) => {
+                        // success callback
+                        // console.log(response);
+
+                    }, (response) => {
+                        // error callback
+                    });
+
+                }
+
+            }
+        }
+    })
+
+
+    var app = new Vue({
+
+        el: '#app',
+        data: {
+            currentView: 'initView',
+            item: {},
+            showModal: false,
+
+        },
+        methods: {
+            updateItem: function(obj) {
+                if (obj.err != null) {
+                    console.log(obj.err);
+                    this.showModal = true;
+                } else {
+                    this.currentView = 'formInput';
+
+                }
+                this.item = obj;
+                console.log(this.item);
+            }
+        }
+    })
+    </script>
+</body>
+
+</html>
