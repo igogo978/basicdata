@@ -28,12 +28,19 @@ public class BasicdataApplication implements CommandLineRunner {
     public void run(String... strings) throws Exception {
         logger.info("spring boot run, and create table.");
         jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS persons("
-                + "cardid INTEGER NOT NULL, "
+                + "cardid VARCHAR(30) NOT NULL, "
                 + "pname VARCHAR(255) NOT NULL,"
                 + "pid VARCHAR(10) NOT NULL,"
-                + "dob int NOT NULL,"
+                + "dob VARCHAR(10) NOT NULL,"
                 + "sex VARCHAR (2) NOT NULL,"
+                + "issue VARCHAR(10) NOT NULL,"
+                + "enable BOOLEAN DEFAULT FALSE,"
                 + "PRIMARY KEY(pid)"
+                + ")");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS personsInfo("
+                + "pid VARCHAR(10) NOT NULL,"
+                + "schoolid VARCHAR(6) NOT NULL,"
+                + "title VARCHAR(20) NOT NULL"
                 + ")");
     }
 }

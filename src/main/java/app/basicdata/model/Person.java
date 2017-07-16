@@ -16,53 +16,69 @@ import java.util.Map;
  */
 public class Person {
 
-    private int carid;
+    private String cardid;
     private String pname;  //中文名字
     private String pid; //身份證字號
-    private int dob; //出生年月日
+    private String dob; //出生年月日
     private String sex;  //姓別
-    private int issue;
-    private String schoolid;
-    private String title;
+    private String issue;
 
-//    private Map<String, String> schoolidObj = new HashMap<>();
-    private ArrayList<HashMap<String, String>> schoolids = new ArrayList<>();
+    private boolean enable;
 
-    public ArrayList<HashMap<String, String>> getSchoolids() {
-        return schoolids;
+    public boolean isEnable() {
+        return enable;
     }
 
-    public void setSchoolids(ArrayList<HashMap<String, String>> schoolids) {
-        this.schoolids = schoolids;
+    public void setEnable(boolean enable) {
+        this.enable = enable;
     }
-    public int getIssue() {
+
+    public String getCardid() {
+        return cardid;
+    }
+
+    public void setCardid(String cardid) {
+        this.cardid = cardid;
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String dob) {
+        this.dob = dob;
+    }
+
+    public String getIssue() {
         return issue;
     }
 
-    public void setIssue(int issue) {
+    public void setIssue(String issue) {
         this.issue = issue;
+    }
+
+    //schoolid:title
+    private ArrayList<PersonInfo> personinfo;
+
+    public ArrayList<PersonInfo> getPersoninfo() {
+        return personinfo;
+    }
+
+    public void setPersoninfo(ArrayList<PersonInfo> personinfo) {
+        this.personinfo = personinfo;
     }
 
     public Person() {
     }
 
-//    public Person(int carid, String pname, String pid, int dob, String sex, int issue) {
-//        this.carid = carid;
-//        this.pname = pname;
-//        this.pid = pid;
-//        this.dob = dob;
-//        this.sex = sex;
-//        this.issue = issue;
-//    }
-
- 
-
-    public int getCarid() {
-        return carid;
-    }
-
-    public void setCarid(int carid) {
-        this.carid = carid;
+    public Person(String cardid, String pname, String pid, String dob, String sex, String issue, boolean enable) {
+        this.cardid = cardid;
+        this.pname = pname;
+        this.pid = pid;
+        this.dob = dob;
+        this.sex = sex;
+        this.issue = issue;
+        this.enable = enable;
     }
 
     public String getPname() {
@@ -81,14 +97,6 @@ public class Person {
         this.pid = pid;
     }
 
-    public int getDob() {
-        return dob;
-    }
-
-    public void setDob(int dob) {
-        this.dob = dob;
-    }
-
     public String getSex() {
         return sex;
     }
@@ -96,5 +104,5 @@ public class Person {
     public void setSex(String sex) {
         this.sex = sex;
     }
-    
+
 }

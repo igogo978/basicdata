@@ -25,12 +25,12 @@
             display: table;
             transition: opacity .3s ease;
         }
-        
+
         .modal-wrapper {
             display: table-cell;
             vertical-align: middle;
         }
-        
+
         .modal-container {
             width: 300px;
             margin: 0px auto;
@@ -41,16 +41,16 @@
             transition: all .3s ease;
             font-family: Helvetica, Arial, sans-serif;
         }
-        
+
         .modal-header h3 {
             margin-top: 0;
             color: #42b983;
         }
-        
+
         .modal-body {
             margin: 20px 0;
         }
-        
+
         .modal-default-button {
             float: right;
             border: 4px solid #26759E;
@@ -85,15 +85,15 @@
                  * You can easily play with the modal transition by editing
                  * these styles.
                  */
-        
+
         .modal-enter {
             opacity: 0;
         }
-        
+
         .modal-leave-active {
             opacity: 0;
         }
-        
+
         .modal-enter .modal-container,
         .modal-leave-active .modal-container {
             -webkit-transform: scale(1.1);
@@ -215,11 +215,11 @@
                                         <td>
                                             <input type="text" v-model="row.title">
                                         </td>
-                                        <td v-if="index!=0"><a @click="removeRow(row)">Remove</a></td>
+                                        <td v-if="index!=0"><a @click="removeRow(row,index)">移除</a></td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <button class="button btn-primary" @click="addRow">Add row</button>
+                            <button class="button btn-primary" @click="addRow">增加一筆</button>
                             <!--  <input v-model="item.schoolid" class="form-control input-sg" type="text" size="20" placeholder="教育部統計處訂定各級單位代碼" /> -->
                         </div>
                     </div>
@@ -274,20 +274,45 @@
         methods: {
             getData: function() {
                 console.log(this.url);
-                let vm = this;
+
                 let obj = {};
                 this.$http.get(this.url).then((response) => {
+                    let vm = this;
                     // success callback
                     console.log(response.data.obj);
                     if (response.data.obj === null) {
                         obj.err = "請確定健保卡是否正確插入";
                     } else {
-                        //成功取得健保卡資料,currentView 改成formInput
                         obj = response.data.obj;
 
-                    }
+                        //取得personifo 資料
+                        var config = {
+                            headers: {
+                                'content-type': 'application/json;CHARSET=UTF-8'
+                            }
+                        };
 
-                    vm.$emit('get-data', obj);
+                        let url = obj.cardid + '/personinfo';
+                        this.$http.post(url,
+                            JSON.stringify(obj), config
+                        ).then((response) => {
+                            // success callback
+                            console.log('personinfo size' + response.data.length);
+                            obj.personinfo = [];
+                            obj.personinfo = response.data;
+
+                            if (obj.personinfo.length === 0 ) {
+                                obj.personinfo = [{schoolid:'',title:''}];
+                            }
+                            console.log('obj:' + obj);
+                            vm.$emit('get-data', obj);
+
+                        }, (response) => {
+                            // error callback
+                        });
+
+
+                    }
 
                     // this.showModal = true;
                 }, (response) => {
@@ -314,11 +339,14 @@
 
         data: function() {
             return {
-                rows: [{
-                    schoolid: "",
-                    title: ""
-                }]
+                rows: this.item.personinfo
             }
+        },
+        created: function() {
+            console.log('created:' + this.item);
+        },
+        mounted: function() {
+            console.log('mounted:' + this.item);
         },
         methods: {
             addRow: function() {
@@ -327,14 +355,14 @@
                     title: ""
                 });
             },
-            removeRow: function(row) {
-                console.log(row);
-                this.rows.$remove(row);
+            removeRow: function(row, index) {
+                console.log('row:' + row);
+                console.log('index:' + index);
+                this.rows.splice(index, 1);
+
             },
             requestUpdate: function() {
-                // console.log(this.rows[0].schoolid);
-                this.item.schoolids = [];
-                this.item.schoolids = this.rows; 
+
                 var config = {
                     headers: {
                         'content-type': 'application/json;CHARSET=UTF-8'
@@ -348,10 +376,10 @@
                 // console.log("schoolid length:" + this.item.schoolid.length);
 
                 if (isAllValid) {
-                    url = this.item.cardid + '/userinfo';
+                    url = this.item.cardid + '/personinfo';
                     // console.log('request url:' + url);
                     // console.log(JSON.stringify(this.item));
-                    this.$http.post(url,
+                    this.$http.put(url,
                         JSON.stringify(this.item), config
                     ).then((response) => {
                         // success callback
@@ -377,13 +405,22 @@
             showModal: false,
 
         },
+        created: function() {
+            console.log('parent created:' + this.item);
+        },
         methods: {
             updateItem: function(obj) {
                 if (obj.err != null) {
                     console.log(obj.err);
+
                     this.showModal = true;
                 } else {
+                    //成功取得健保卡資料,currentView 改成formInput
+
                     this.currentView = 'formInput';
+
+
+
 
                 }
                 this.item = obj;
