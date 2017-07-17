@@ -58,7 +58,8 @@ public class PersonsService {
 
     public List<PersonInfo> findPersonInfoByPid(String pid) {
         List<PersonInfo> entries = new ArrayList<>();
-        jdbcTemplate.query("SELECT * FROM personsInfo where pid=?", new Object[]{pid}, (rs, row) -> new PersonInfo(rs.getString("schoolid"), rs.getString("title"))).forEach(personinfo -> entries.add(personinfo));
+//        jdbcTemplate.query("SELECT * FROM personsInfo where pid=?", new Object[]{pid}, (rs, row) -> new PersonInfo(rs.getString("schoolid"), rs.getString("title"))).forEach(personinfo -> entries.add(personinfo));
+        jdbcTemplate.query("SELECT schoolid, title FROM persons, personsInfo where persons.pid=personsInfo.pid and personsInfo.pid=? and enable=1", new Object[]{pid}, (rs, row) -> new PersonInfo(rs.getString("schoolid"), rs.getString("title"))).forEach(personinfo -> entries.add(personinfo));
         return entries;
     }
 
