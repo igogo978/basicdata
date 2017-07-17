@@ -21,8 +21,17 @@ public class Person {
     private String pid; //身份證字號
     private String dob; //出生年月日
     private String sex;  //姓別
-    private String issue;
+    private String issue; //發卡日期
+    private String err; //error message
 
+    public String getErr() {
+        return err;
+    }
+
+    public void setErr(String err) {
+        this.err = err;
+    }
+    
     private boolean enable;
 
     public boolean isEnable() {

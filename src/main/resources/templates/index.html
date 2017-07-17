@@ -301,8 +301,8 @@
                             obj.personinfo = [];
                             obj.personinfo = response.data;
 
-                            if (obj.personinfo.length === 0 ) {
-                                obj.personinfo = [{schoolid:'',title:''}];
+                            if (obj.personinfo.length === 0) {
+                                obj.personinfo = [{ schoolid: '', title: '' }];
                             }
                             console.log('obj:' + obj);
                             vm.$emit('get-data', obj);
@@ -379,11 +379,14 @@
                     url = this.item.cardid + '/personinfo';
                     // console.log('request url:' + url);
                     // console.log(JSON.stringify(this.item));
+                    console.log(this.rows);
+                    this.item.personinfo = this.rows;
                     this.$http.put(url,
                         JSON.stringify(this.item), config
                     ).then((response) => {
                         // success callback
-                        // console.log(response);
+                        console.log(response.data);
+                        vm.$emit('get-data', response.data);
 
                     }, (response) => {
                         // error callback

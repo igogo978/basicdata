@@ -33,33 +33,39 @@ public class UserInfoController {
     public Person updateUser(@PathVariable String cardid, @RequestBody Person cardinfoPerson) {
         List<Person> persons;
         persons = service.findByPid(cardinfoPerson.getPid());
+        logger.info("persons size:" + persons.size());
         logger.info(String.format("size:%d", persons.size()));
         //找到帳號檢查卡片資料是否完全符合, 無資料則新增到資料庫
         if (persons.size() > 0) {
             if (isCardInfoMatch(persons.get(0), cardinfoPerson)) {
                 //update person info
-                cardinfoPerson.getPersoninfo().forEach((personinfo) -> {
-//                    logger.info(String.format("%s,%s,%s",cardPerson.getPid(), personinfo.getSchoolid(), personinfo.getTitle()));
-//                    service.deletePersonInfo(cardPerson.getPid());
+                updatePersonInfoDB(cardinfoPerson);
+                cardinfoPerson.setErr("更新成功");
 
-//                    logger.info("count for personinfo:" + service.countPersonInfo(cardPerson.getPid()));
-                    if (service.countPersonInfo(cardinfoPerson.getPid()) != 0) {
-                        service.deletePersonInfo(cardinfoPerson.getPid());
-                    }
-                    service.updatePersonInfo(cardinfoPerson.getPid(), personinfo);
-                });
                 logger.info("all match");
             } else {
                 //卡片資訊不一樣, 退回, 資料狀態disable
                 service.disablePerson(cardinfoPerson.getPid());
                 logger.info("not match");
+                cardinfoPerson.setErr(String.format("卡片資訊不符合,與卡片號碼%s身份証號碼重覆,為確保安全已將此身份證號碼鎖定,請聯絡客服人員", persons.get(0).getCardid()));
             }
 
         } else {
             //update db
+            service.updatePerson(cardinfoPerson);
+
+            updatePersonInfoDB(cardinfoPerson);
+            cardinfoPerson.setErr("更新成功");
+//            service.updatePerson(cardinfoPerson);
+//            cardinfoPerson.getPersoninfo().forEach((personinfo) -> {
+//                if (service.countPersonInfo(cardinfoPerson.getPid()) != 0) {
+//                    service.deletePersonInfo(cardinfoPerson.getPid());
+//                }
+//                service.updatePersonInfo(cardinfoPerson.getPid(), personinfo);
+//            });
         }
 
-        return persons.get(0);
+        return cardinfoPerson;
     }
 
     @RequestMapping(value = "/personinfo", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -67,11 +73,14 @@ public class UserInfoController {
         List<Person> persons;
         persons = service.findByPid(cardinfoPerson.getPid());
         List<PersonInfo> entries;
-        if (isCardInfoMatch(persons.get(0), cardinfoPerson)) {
+        if (persons.size() > 0) {
+            if (isCardInfoMatch(persons.get(0), cardinfoPerson)) {
 
-            entries = service.findPersonInfoByPid(cardinfoPerson.getPid());
-            return entries;
+                entries = service.findPersonInfoByPid(cardinfoPerson.getPid());
+                return entries;
+            }
         }
+
         return null;
     }
 
@@ -82,6 +91,16 @@ public class UserInfoController {
                 && dbPerson.getSex().equals(cardPerson.getSex())
                 && dbPerson.getIssue().equals(cardPerson.getIssue());
 
+    }
+
+    private void updatePersonInfoDB(Person cardinfoPerson) {
+        //每次皆清空該使用者資料, 以最新一次資料整批更新,
+        if (service.countPersonInfo(cardinfoPerson.getPid()) != 0) {
+            service.deletePersonInfo(cardinfoPerson.getPid());
+        }
+        cardinfoPerson.getPersoninfo().forEach((personinfo) -> {
+            service.updatePersonInfo(cardinfoPerson.getPid(), personinfo);
+        });
     }
 
 }
